@@ -14,6 +14,14 @@ export interface SampleImageConfig {
 
 export const SAMPLE_IMAGES: SampleImageConfig[] = [
   {
+    id: 'sample-portrait',
+    name: 'Studio Character Portrait',
+    category: 'Portrait & People',
+    width: 1800,
+    height: 2400,
+    generate: () => renderStudioPortrait(1800, 2400),
+  },
+  {
     id: 'sample-alpine',
     name: 'Alpine Sunset Vista',
     category: 'Landscape',
@@ -297,6 +305,178 @@ function renderMinimalArchitecture(width: number, height: number): Promise<Blob>
   ctx.fillStyle = 'rgba(40, 30, 25, 0.32)';
   ctx.beginPath();
   ctx.ellipse(sX - sR * 0.2, sY + sR * 0.88, sR * 1.3, sR * 0.35, -0.15, 0, Math.PI * 2);
+  ctx.fill();
+
+  return canvasToBlob(canvas);
+}
+
+function renderStudioPortrait(width: number, height: number): Promise<Blob> {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d')!;
+
+  // 1. Studio backdrop gradient with subtle rim glow
+  const bg = ctx.createRadialGradient(width * 0.5, height * 0.45, 50, width * 0.5, height * 0.5, width * 0.8);
+  bg.addColorStop(0, '#2d3345');
+  bg.addColorStop(0.5, '#1e212d');
+  bg.addColorStop(1, '#0e1017');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+
+  // 2. Shoulders & torso silhouette
+  ctx.fillStyle = '#181b24';
+  ctx.beginPath();
+  ctx.moveTo(width * 0.05, height);
+  ctx.bezierCurveTo(width * 0.15, height * 0.72, width * 0.35, height * 0.68, width * 0.4, height * 0.62);
+  ctx.lineTo(width * 0.6, height * 0.62);
+  ctx.bezierCurveTo(width * 0.65, height * 0.68, width * 0.85, height * 0.72, width * 0.95, height);
+  ctx.closePath();
+  ctx.fill();
+
+  // Collar detail / jacket lapel
+  ctx.strokeStyle = '#2d3245';
+  ctx.lineWidth = 8;
+  ctx.stroke();
+
+  // Inner shirt
+  ctx.fillStyle = '#f0ebe1';
+  ctx.beginPath();
+  ctx.moveTo(width * 0.43, height * 0.62);
+  ctx.lineTo(width * 0.5, height * 0.76);
+  ctx.lineTo(width * 0.57, height * 0.62);
+  ctx.closePath();
+  ctx.fill();
+
+  // 3. Neck
+  const neckGrad = ctx.createLinearGradient(width * 0.4, height * 0.48, width * 0.6, height * 0.62);
+  neckGrad.addColorStop(0, '#e8b89d');
+  neckGrad.addColorStop(1, '#c58b6e');
+  ctx.fillStyle = neckGrad;
+  ctx.beginPath();
+  ctx.moveTo(width * 0.42, height * 0.48);
+  ctx.lineTo(width * 0.42, height * 0.62);
+  ctx.bezierCurveTo(width * 0.46, height * 0.65, width * 0.54, height * 0.65, width * 0.58, height * 0.62);
+  ctx.lineTo(width * 0.58, height * 0.48);
+  ctx.closePath();
+  ctx.fill();
+
+  // Neck shadow under chin
+  ctx.fillStyle = 'rgba(80, 40, 30, 0.35)';
+  ctx.beginPath();
+  ctx.moveTo(width * 0.42, height * 0.48);
+  ctx.bezierCurveTo(width * 0.5, height * 0.55, width * 0.55, height * 0.53, width * 0.58, height * 0.48);
+  ctx.bezierCurveTo(width * 0.5, height * 0.51, width * 0.46, height * 0.5, width * 0.42, height * 0.48);
+  ctx.fill();
+
+  // 4. Head / Face Structure
+  const headCenterX = width * 0.5;
+  const headCenterY = height * 0.38;
+  const faceW = width * 0.28;
+  const faceH = height * 0.28;
+
+  const faceGrad = ctx.createRadialGradient(
+    headCenterX - faceW * 0.15,
+    headCenterY - faceH * 0.1,
+    faceW * 0.1,
+    headCenterX,
+    headCenterY,
+    faceW * 0.7
+  );
+  faceGrad.addColorStop(0, '#f5cbb3');
+  faceGrad.addColorStop(0.6, '#e2aa8e');
+  faceGrad.addColorStop(1, '#cb8f70');
+
+  ctx.fillStyle = faceGrad;
+  ctx.beginPath();
+  ctx.moveTo(headCenterX - faceW * 0.45, headCenterY - faceH * 0.35);
+  ctx.bezierCurveTo(
+    headCenterX - faceW * 0.5, headCenterY + faceH * 0.1,
+    headCenterX - faceW * 0.35, headCenterY + faceH * 0.4,
+    headCenterX, headCenterY + faceH * 0.5
+  );
+  ctx.bezierCurveTo(
+    headCenterX + faceW * 0.35, headCenterY + faceH * 0.4,
+    headCenterX + faceW * 0.5, headCenterY + faceH * 0.1,
+    headCenterX + faceW * 0.45, headCenterY - faceH * 0.35
+  );
+  ctx.closePath();
+  ctx.fill();
+
+  // 5. Hair
+  ctx.fillStyle = '#1c151b';
+  ctx.beginPath();
+  ctx.moveTo(headCenterX - faceW * 0.6, headCenterY - faceH * 0.2);
+  ctx.bezierCurveTo(headCenterX - faceW * 0.7, headCenterY - faceH * 0.8, headCenterX - faceW * 0.2, headCenterY - faceH * 0.95, headCenterX + faceW * 0.1, headCenterY - faceH * 0.9);
+  ctx.bezierCurveTo(headCenterX + faceW * 0.5, headCenterY - faceH * 0.85, headCenterX + faceW * 0.68, headCenterY - faceH * 0.5, headCenterX + faceW * 0.62, headCenterY - faceH * 0.1);
+  ctx.bezierCurveTo(headCenterX + faceW * 0.5, headCenterY - faceH * 0.3, headCenterX + faceW * 0.35, headCenterY - faceH * 0.45, headCenterX + faceW * 0.2, headCenterY - faceH * 0.4);
+  ctx.bezierCurveTo(headCenterX, headCenterY - faceH * 0.5, headCenterX - faceW * 0.3, headCenterY - faceH * 0.4, headCenterX - faceW * 0.48, headCenterY - faceH * 0.25);
+  ctx.closePath();
+  ctx.fill();
+
+  // Eyebrows
+  ctx.fillStyle = '#2b1b1a';
+  ctx.beginPath();
+  ctx.ellipse(headCenterX - faceW * 0.22, headCenterY - faceH * 0.08, faceW * 0.12, faceH * 0.02, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(headCenterX + faceW * 0.22, headCenterY - faceH * 0.08, faceW * 0.12, faceH * 0.02, 0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eyes
+  const renderEye = (eyeX: number, eyeY: number) => {
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(eyeX, eyeY, faceW * 0.1, faceH * 0.045, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const irisGrad = ctx.createRadialGradient(eyeX, eyeY, 2, eyeX, eyeY, faceW * 0.048);
+    irisGrad.addColorStop(0, '#5a3d28');
+    irisGrad.addColorStop(0.6, '#8e623a');
+    irisGrad.addColorStop(1, '#2c1e14');
+    ctx.fillStyle = irisGrad;
+    ctx.beginPath();
+    ctx.arc(eyeX, eyeY, faceW * 0.048, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#110d0b';
+    ctx.beginPath();
+    ctx.arc(eyeX, eyeY, faceW * 0.022, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(eyeX - faceW * 0.015, eyeY - faceH * 0.012, faceW * 0.01, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#1a1412';
+    ctx.lineWidth = 4.5;
+    ctx.beginPath();
+    ctx.ellipse(eyeX, eyeY - faceH * 0.01, faceW * 0.11, faceH * 0.04, 0, Math.PI * 0.9, Math.PI * 2.1, false);
+    ctx.stroke();
+  };
+
+  renderEye(headCenterX - faceW * 0.22, headCenterY);
+  renderEye(headCenterX + faceW * 0.22, headCenterY);
+
+  // Nose
+  ctx.strokeStyle = 'rgba(160, 95, 70, 0.6)';
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.moveTo(headCenterX - faceW * 0.02, headCenterY + faceH * 0.02);
+  ctx.lineTo(headCenterX - faceW * 0.01, headCenterY + faceH * 0.18);
+  ctx.lineTo(headCenterX + faceW * 0.04, headCenterY + faceH * 0.2);
+  ctx.stroke();
+
+  // Lips
+  const mouthY = headCenterY + faceH * 0.32;
+  ctx.fillStyle = '#b56157';
+  ctx.beginPath();
+  ctx.ellipse(headCenterX, mouthY - faceH * 0.01, faceW * 0.11, faceH * 0.025, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#c77064';
+  ctx.beginPath();
+  ctx.ellipse(headCenterX, mouthY + faceH * 0.015, faceW * 0.09, faceH * 0.03, 0, 0, Math.PI * 2);
   ctx.fill();
 
   return canvasToBlob(canvas);

@@ -19,6 +19,7 @@ interface HeaderProps {
   batchCount: number;
   onOpenBatchModal: () => void;
   currentItem: MediaItem | null;
+  onOpenAiAnimeModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   batchCount,
   onOpenBatchModal,
   currentItem,
+  onOpenAiAnimeModal,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -119,6 +121,17 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right Controls: Batch Queue & Export */}
       <div className="flex items-center gap-2">
+        {currentItem && onOpenAiAnimeModal && (
+          <button
+            onClick={onOpenAiAnimeModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-900/60 to-indigo-900/60 hover:from-purple-800/80 hover:to-indigo-800/80 text-purple-200 border border-purple-500/40 text-xs font-semibold shadow-sm transition-all"
+            title="AI Cartoon & Anime Neural Style Transfer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+            <span className="hidden sm:inline">AI Cartoon</span>
+          </button>
+        )}
+
         <button
           onClick={onOpenBatchModal}
           className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition-colors"

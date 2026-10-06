@@ -20,6 +20,7 @@ import {
   Zap,
 } from 'lucide-react';
 import {
+  AnimeStyleSettings,
   ColorAdjustments,
   CropRegion,
   ImageFormat,
@@ -32,7 +33,7 @@ import {
   COLOR_PRESETS,
   RESOLUTION_PRESETS,
 } from '../utils/presets';
-import { DEFAULT_ADJUSTMENTS, formatBytes } from '../utils/imageProcessing';
+import { DEFAULT_ADJUSTMENTS, DEFAULT_ANIME_SETTINGS, formatBytes } from '../utils/imageProcessing';
 
 interface EditorToolbarProps {
   item: MediaItem;
@@ -44,9 +45,10 @@ interface EditorToolbarProps {
   isProcessing: boolean;
   activeCropTool: boolean;
   setActiveCropTool: (active: boolean) => void;
+  onOpenAiAnimeModal?: () => void;
 }
 
-type TabType = 'crop' | 'resize' | 'color' | 'export' | 'metadata';
+type TabType = 'crop' | 'resize' | 'color' | 'anime' | 'export' | 'metadata';
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   item,
@@ -58,6 +60,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   isProcessing,
   activeCropTool,
   setActiveCropTool,
+  onOpenAiAnimeModal,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('resize');
   const [newTagInput, setNewTagInput] = useState('');
@@ -141,6 +144,12 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     if (adj.vibrance > 25) tags.add('high-vibrance');
     if (adj.contrast > 25) tags.add('high-contrast');
 
+    if (settings.animeStyle?.enabled) {
+      tags.add('anime-art');
+      tags.add('cel-shaded');
+      tags.add(settings.animeStyle.style);
+    }
+
     tags.add(settings.format.replace('image/', ''));
     onUpdateMetadata({ tags: Array.from(tags) });
   };
@@ -196,7 +205,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
         <button
           onClick={() => setActiveTab('color')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-xs font-medium rounded-lg transition-all ${
+          className={`flex-1 flex items-center justify-center gap-1 py-2 px-1 text-xs font-medium rounded-lg transition-all ${
             activeTab === 'color'
               ? 'bg-zinc-800 text-white shadow-sm'
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
@@ -205,6 +214,19 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         >
           <Sliders className="w-3.5 h-3.5 text-amber-400" />
           <span>Color</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('anime')}
+          className={`flex-1 flex items-center justify-center gap-1 py-2 px-1 text-xs font-medium rounded-lg transition-all ${
+            activeTab === 'anime'
+              ? 'bg-indigo-950/80 text-indigo-300 border border-indigo-500/40 shadow-sm'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+          }`}
+          title="Anime Art Transformation"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Anime</span>
         </button>
 
         <button
@@ -886,6 +908,410 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                   />
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: ANIME ART TRANSFORMATION */}
+        {activeTab === 'anime' && (
+          <div className="space-y-5">
+            {/* AI Neural Model Launcher Card */}
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-purple-950/80 via-indigo-950/80 to-pink-950/80 border border-purple-500/40 shadow-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-200">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-white text-xs block">AI Cartoon & Anime Redraw</span>
+                    <span className="text-[10px] text-purple-300">Neural Style Transfer Model</span>
+                  </div>
+                </div>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold uppercase">
+                  AI Model
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-300 mb-3 leading-relaxed">
+                Transform your photo into a stylized 2D anime character or cartoon avatar using deep neural style synthesis.
+              </p>
+              <button
+                onClick={onOpenAiAnimeModal}
+                className="w-full py-2.5 px-3 rounded-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Launch AI Cartoon Studio</span>
+              </button>
+            </div>
+
+            {/* Master Switch Card for Real-Time Canvas Filter */}
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-indigo-950/70 to-purple-950/70 border border-indigo-500/30 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-400/40 flex items-center justify-center text-indigo-300">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-xs">Real-Time Canvas Shader</h3>
+                    <p className="text-[10px] text-indigo-300">
+                      Instant cel-shading, inking & smoothing
+                    </p>
+                  </div>
+                </div>
+
+                {/* Toggle switch */}
+                <button
+                  onClick={() =>
+                    onUpdateSettings({
+                      animeStyle: {
+                        ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                        enabled: !(settings.animeStyle?.enabled),
+                      },
+                    })
+                  }
+                  className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
+                    settings.animeStyle?.enabled
+                      ? 'bg-indigo-600 justify-end'
+                      : 'bg-zinc-800 justify-start'
+                  }`}
+                >
+                  <div className="w-4 h-4 rounded-full bg-white shadow-md transform transition-transform" />
+                </button>
+              </div>
+            </div>
+
+            {/* Anime Sub-Style Aesthetic Presets */}
+            <div>
+              <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold block mb-2">
+                Illustration & Cartoon Profiles
+              </span>
+              <div className="space-y-1.5">
+                {[
+                  {
+                    id: 'modern-anime',
+                    name: 'Modern Anime Cel',
+                    subtitle: 'Illustrated Keyframe',
+                    desc: '2D anime redraw aesthetic with crisp contour line art, clean cel-shaded skin, and warm lighting.',
+                    badge: 'Reference Style',
+                  },
+                  {
+                    id: 'comic-toon',
+                    name: 'Comic Graphic Novel',
+                    subtitle: 'Bold Ink & Pop Art',
+                    desc: 'Western graphic novel aesthetic with heavy pen strokes and vibrant primary colors.',
+                    badge: 'Heavy Ink',
+                  },
+                  {
+                    id: 'classic-2d',
+                    name: 'Classic 2D Toon',
+                    subtitle: 'Saturday Morning',
+                    desc: 'Flat hand-drawn animation cel with uniform pen lines and simplified 3-tone color blocks.',
+                    badge: 'Flat Toon',
+                  },
+                  {
+                    id: 'shinkai',
+                    name: 'Shinkai Horizon',
+                    subtitle: 'Makoto Shinkai style',
+                    desc: 'Luminous azure skies, golden sunset highlights & radiant atmospheric bloom.',
+                    badge: 'Sky & Bloom',
+                  },
+                  {
+                    id: 'ghibli',
+                    name: 'Ghibli Pastoral',
+                    subtitle: 'Hayao Miyazaki style',
+                    desc: 'Hand-painted watercolor aesthetic, lush foliage greens & soft dark outlines.',
+                    badge: 'Watercolor',
+                  },
+                  {
+                    id: 'cyberpunk',
+                    name: 'Cyberpunk Neo-Tokyo',
+                    subtitle: 'Akira / Ghost in the Shell',
+                    desc: 'Bold manga inking, saturated neon magenta & electric cyan contrasts.',
+                    badge: 'Manga Ink',
+                  },
+                  {
+                    id: 'kawaii',
+                    name: 'Pastel Kawaii',
+                    subtitle: 'Soft Manga Portrait',
+                    desc: 'High-key illumination, soft rose-tinted blush & dreamy lifted shadows.',
+                    badge: 'Soft Glow',
+                  },
+                ].map((s) => {
+                  const currentStyle = settings.animeStyle?.style || 'modern-anime';
+                  const isSelected = settings.animeStyle?.enabled && currentStyle === s.id;
+
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() =>
+                        onUpdateSettings({
+                          animeStyle: {
+                            ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                            enabled: true,
+                            style: s.id as any,
+                          },
+                        })
+                      }
+                      className={`w-full text-left p-2.5 rounded-xl border transition-all ${
+                        isSelected
+                          ? 'bg-indigo-950/50 border-indigo-500 shadow-md shadow-indigo-950/40 text-white'
+                          : 'bg-zinc-950/60 border-zinc-800/80 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/60'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-xs text-zinc-100">
+                            {s.name}
+                          </span>
+                          <span className="text-[9px] text-zinc-500">
+                            ({s.subtitle})
+                          </span>
+                        </div>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-zinc-800 text-indigo-300 font-mono">
+                          {s.badge}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-zinc-400 line-clamp-2">
+                        {s.desc}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Fine Tuning Sliders */}
+            <div className="space-y-3.5 pt-1">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold block">
+                Cartoon & Inking Parameters
+              </span>
+
+              {/* Painterly Kuwahara Cartoon Smoothing */}
+              <div>
+                <div className="flex justify-between text-[11px] mb-1">
+                  <span className="text-zinc-400">Painterly Smoothing (Kuwahara)</span>
+                  <span className="font-mono text-indigo-300">
+                    {settings.animeStyle?.painterlySmooth ?? 3} radius
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={6}
+                  value={settings.animeStyle?.painterlySmooth ?? 3}
+                  onChange={(e) =>
+                    onUpdateSettings({
+                      animeStyle: {
+                        ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                        painterlySmooth: parseInt(e.target.value),
+                      },
+                    })
+                  }
+                  className="w-full accent-indigo-500 cursor-pointer"
+                />
+                <div className="flex justify-between text-[9px] text-zinc-500 mt-0.5">
+                  <span>Raw Photo (0)</span>
+                  <span>Cel-Painted (3-4)</span>
+                  <span>Heavy Flat (5-6)</span>
+                </div>
+              </div>
+
+              {/* Line Art Inking Strength */}
+              <div>
+                <div className="flex justify-between text-[11px] mb-1">
+                  <span className="text-zinc-400">Contour Ink Lines (Pen Outlines)</span>
+                  <span className="font-mono text-indigo-300">
+                    {settings.animeStyle?.lineArtStrength ?? 65}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={settings.animeStyle?.lineArtStrength ?? 65}
+                  onChange={(e) =>
+                    onUpdateSettings({
+                      animeStyle: {
+                        ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                        lineArtStrength: parseInt(e.target.value),
+                      },
+                    })
+                  }
+                  className="w-full accent-indigo-500 cursor-pointer"
+                />
+              </div>
+
+              {/* Line Thickness */}
+              <div>
+                <span className="text-zinc-400 text-[11px] block mb-1.5">
+                  Contour Line Thickness
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { val: 1, label: 'Fine (1px)' },
+                    { val: 2, label: 'Medium (2px)' },
+                    { val: 3, label: 'Bold (3px)' },
+                  ].map((t) => (
+                    <button
+                      key={t.val}
+                      onClick={() =>
+                        onUpdateSettings({
+                          animeStyle: {
+                            ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                            lineArtThickness: t.val,
+                          },
+                        })
+                      }
+                      className={`py-1.5 rounded-lg text-[10px] font-medium border transition-colors ${
+                        (settings.animeStyle?.lineArtThickness ?? 1) === t.val
+                          ? 'bg-indigo-600 text-white border-indigo-500'
+                          : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Ink Color */}
+              <div>
+                <span className="text-zinc-400 text-[11px] block mb-1.5">
+                  Ink Outline Tone
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: 'black', label: 'Deep Black' },
+                    { id: 'charcoal', label: 'Charcoal' },
+                    { id: 'colored', label: 'Tinted' },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() =>
+                        onUpdateSettings({
+                          animeStyle: {
+                            ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                            inkColor: t.id as any,
+                          },
+                        })
+                      }
+                      className={`py-1.5 rounded-lg text-[10px] font-medium border transition-colors ${
+                        (settings.animeStyle?.inkColor || 'black') === t.id
+                          ? 'bg-indigo-600 text-white border-indigo-500'
+                          : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cel Shading Levels */}
+              <div>
+                <div className="flex justify-between text-[11px] mb-1">
+                  <span className="text-zinc-400">Cel-Shading Bands (Quantization)</span>
+                  <span className="font-mono text-indigo-300">
+                    {settings.animeStyle?.celShadingLevels ?? 5} levels
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={2}
+                  max={12}
+                  value={settings.animeStyle?.celShadingLevels ?? 5}
+                  onChange={(e) =>
+                    onUpdateSettings({
+                      animeStyle: {
+                        ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                        celShadingLevels: parseInt(e.target.value),
+                      },
+                    })
+                  }
+                  className="w-full accent-indigo-500 cursor-pointer"
+                />
+                <div className="flex justify-between text-[9px] text-zinc-500 mt-0.5">
+                  <span>Graphic 2-Tone</span>
+                  <span>Anime Cel (4-6)</span>
+                  <span>Soft Shade (8+)</span>
+                </div>
+              </div>
+
+              {/* Color Boost */}
+              <div>
+                <div className="flex justify-between text-[11px] mb-1">
+                  <span className="text-zinc-400">Cartoon Saturation Boost</span>
+                  <span className="font-mono text-indigo-300">
+                    +{settings.animeStyle?.colorBoost ?? 50}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={settings.animeStyle?.colorBoost ?? 50}
+                  onChange={(e) =>
+                    onUpdateSettings({
+                      animeStyle: {
+                        ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                        colorBoost: parseInt(e.target.value),
+                      },
+                    })
+                  }
+                  className="w-full accent-indigo-500 cursor-pointer"
+                />
+              </div>
+
+              {/* Radiant Bloom Glow */}
+              <div>
+                <div className="flex justify-between text-[11px] mb-1">
+                  <span className="text-zinc-400">Anime Atmospheric Glow</span>
+                  <span className="font-mono text-indigo-300">
+                    {settings.animeStyle?.bloomGlow ?? 25}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={settings.animeStyle?.bloomGlow ?? 25}
+                  onChange={(e) =>
+                    onUpdateSettings({
+                      animeStyle: {
+                        ...(settings.animeStyle || DEFAULT_ANIME_SETTINGS),
+                        bloomGlow: parseInt(e.target.value),
+                      },
+                    })
+                  }
+                  className="w-full accent-indigo-500 cursor-pointer"
+                />
+              </div>
+
+              {/* AI Generative Anime Redraw Assistant */}
+              <div className="p-3 bg-zinc-950/90 rounded-xl border border-indigo-500/30 space-y-2 mt-4">
+                <div className="flex items-center gap-1.5 text-indigo-300 font-semibold text-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Generative 2D Anime Redraw</span>
+                </div>
+                <p className="text-[10px] text-zinc-400 leading-relaxed">
+                  For full character draftsmanship (like redraws with anime eyes, vector dreadlocks, and custom room details), use this exact prompt in an AI image generator:
+                </p>
+                <div className="p-2 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-300 select-all leading-relaxed">
+                  "High-detail 2D Japanese anime keyframe illustration of a figure in black graphic tee and floral cheeky cut underwear, muscular anatomy cel shading, clean black contour line art, detailed locs hair, vibrant anime background lighting, Studio Trigger animation style, 4k masterwork"
+                </div>
+              </div>
+
+              {/* Reset Anime Settings */}
+              <button
+                onClick={() =>
+                  onUpdateSettings({
+                    animeStyle: { ...DEFAULT_ANIME_SETTINGS, enabled: false },
+                  })
+                }
+                className="w-full py-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white text-[11px] flex items-center justify-center gap-1.5 transition-colors border border-zinc-700/60"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Reset Cartoon Settings</span>
+              </button>
             </div>
           </div>
         )}

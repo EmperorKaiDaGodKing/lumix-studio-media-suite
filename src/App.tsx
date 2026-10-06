@@ -17,6 +17,7 @@ import { Header } from './components/Header';
 import { CanvasWorkspace } from './components/CanvasWorkspace';
 import { EditorToolbar } from './components/EditorToolbar';
 import { BatchQueueModal } from './components/BatchQueueModal';
+import { AiAnimeModal } from './components/AiAnimeModal';
 import { UploadCloud, Image as ImageIcon } from 'lucide-react';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [batchQueue, setBatchQueue] = useState<MediaItem[]>([]);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [isAiAnimeModalOpen, setIsAiAnimeModalOpen] = useState(false);
   const [activeCropTool, setActiveCropTool] = useState(false);
 
   // Render pipeline state
@@ -36,9 +38,9 @@ export default function App() {
   const activeItem = items.find((i) => i.id === activeItemId) || null;
   const renderTimeoutRef = useRef<number | null>(null);
 
-  // Load sample image on initial mount
+  // Load sample image on initial mount (portrait demo for instant cartoon tests)
   useEffect(() => {
-    loadSampleById('sample-alpine');
+    loadSampleById('sample-portrait');
   }, []);
 
   const loadSampleById = async (sampleId: string) => {
@@ -288,6 +290,54 @@ export default function App() {
     );
   };
 
+  // Handle bulk or inline renaming of queued items
+  const handleBulkRename = (renamedMap: Record<string, string>) => {
+    setBatchQueue((prev) =>
+      prev.map((item) =>
+        renamedMap[item.id] ? { ...item, name: renamedMap[item.id] } : item
+      )
+    );
+    setItems((prev) =>
+      prev.map((item) =>
+        renamedMap[item.id] ? { ...item, name: renamedMap[item.id] } : item
+      )
+    );
+  };
+
+  // Apply AI Anime result as active working image
+  const handleApplyAiAnimeResult = async (blob: Blob, url: string, name: string) => {
+    if (!activeItem) return;
+    try {
+      const img = await loadImage(url);
+      const updatedItem: MediaItem = {
+        ...activeItem,
+        name,
+        originalBlob: blob,
+        originalUrl: url,
+        originalWidth: img.naturalWidth,
+        originalHeight: img.naturalHeight,
+        originalSize: blob.size,
+        mimeType: blob.type || 'image/png',
+        settings: {
+          ...activeItem.settings,
+          targetWidth: img.naturalWidth,
+          targetHeight: img.naturalHeight,
+        },
+      };
+      setItems((prev) => prev.map((i) => (i.id === activeItem.id ? updatedItem : i)));
+      triggerRender(updatedItem);
+    } catch (err) {
+      console.error('Failed to apply anime image:', err);
+    }
+  };
+
+  // Add AI Anime result as a separate asset into queue and items
+  const handleAddToQueueFromAi = (newItem: MediaItem) => {
+    setItems((prev) => [...prev, newItem]);
+    setBatchQueue((prev) => [...prev, newItem]);
+    setActiveItemId(newItem.id);
+  };
+
   // Drag and drop support
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -323,6 +373,7 @@ export default function App() {
         batchCount={batchQueue.length}
         onOpenBatchModal={() => setIsBatchModalOpen(true)}
         currentItem={activeItem}
+        onOpenAiAnimeModal={() => setIsAiAnimeModalOpen(true)}
       />
 
       {/* Main Studio Workspace */}
@@ -350,6 +401,7 @@ export default function App() {
               isProcessing={isProcessing}
               activeCropTool={activeCropTool}
               setActiveCropTool={setActiveCropTool}
+              onOpenAiAnimeModal={() => setIsAiAnimeModalOpen(true)}
             />
           </>
         ) : (
@@ -361,11 +413,11 @@ export default function App() {
               sample scene to start editing and converting.
             </p>
             <button
-              onClick={() => loadSampleById('sample-alpine')}
+              onClick={() => loadSampleById('sample-portrait')}
               className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-lg shadow-indigo-950 flex items-center gap-2"
             >
               <ImageIcon className="w-4 h-4" />
-              <span>Load Alpine Sunset Sample</span>
+              <span>Load Character Portrait Sample</span>
             </button>
           </div>
         )}
@@ -394,6 +446,18 @@ export default function App() {
           onClearQueue={() => setBatchQueue([])}
           currentSettings={activeItem.settings}
           onApplyRecipeToAll={handleApplyRecipeToAll}
+          onBulkRename={handleBulkRename}
+        />
+      )}
+
+      {/* AI Neural Anime & Cartoon Modal */}
+      {activeItem && (
+        <AiAnimeModal
+          isOpen={isAiAnimeModalOpen}
+          onClose={() => setIsAiAnimeModalOpen(false)}
+          item={activeItem}
+          onApplyAsActive={handleApplyAiAnimeResult}
+          onAddToQueue={handleAddToQueueFromAi}
         />
       )}
     </div>

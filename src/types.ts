@@ -29,6 +29,18 @@ export interface CropRegion {
 
 export type ResampleAlgorithm = 'bicubic' | 'bilinear' | 'sharp' | 'nearest';
 
+export interface AnimeStyleSettings {
+  enabled: boolean;
+  style: 'modern-anime' | 'comic-toon' | 'classic-2d' | 'shinkai' | 'ghibli' | 'cyberpunk' | 'retro-cel' | 'kawaii' | 'custom';
+  painterlySmooth: number;   // 0 to 8 (Kuwahara painterly cartoon smoothing radius)
+  lineArtStrength: number;   // 0 to 100 (edge inking strength)
+  lineArtThickness: number;  // 1 to 3 px
+  celShadingLevels: number;  // 2 to 12 (color quantization levels)
+  colorBoost: number;        // 0 to 100 (anime vibrance)
+  bloomGlow: number;         // 0 to 100 (atmospheric anime glow)
+  inkColor: 'black' | 'charcoal' | 'colored';
+}
+
 export interface TransformSettings {
   crop: CropRegion | null;
   rotation: number;     // degrees: -180 to 180 or 90 steps
@@ -39,6 +51,7 @@ export interface TransformSettings {
   maintainAspectRatio: boolean;
   resampleAlgorithm: ResampleAlgorithm;
   adjustments: ColorAdjustments;
+  animeStyle: AnimeStyleSettings;
   format: ImageFormat;
   quality: number;      // 0.05 to 1.0 (for jpeg/webp)
 }
