@@ -1,0 +1,6 @@
+{
+  "name": "Lumix Studio - Advanced Media Transformation & Processing Suite",
+  "description": "Professional browser-based media editor and transformation suite for cropping, resizing, color grading, resolution scaling, and high-fidelity format conversion.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
